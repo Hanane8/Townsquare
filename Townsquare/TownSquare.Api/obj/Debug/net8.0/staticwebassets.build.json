@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "iDHGndTc1wPOL98mWV06AmIofXbJjVDW27+PCTy+8EM=",
+  "Source": "TownSquare.Api",
+  "BasePath": "_content/TownSquare.Api",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}

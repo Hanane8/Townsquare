@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "Townsquare\\Townsquare.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "TownSquare.Api\\TownSquare.Api.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
