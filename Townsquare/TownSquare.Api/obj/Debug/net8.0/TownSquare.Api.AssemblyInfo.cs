@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TownSquare.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+022329975ece933b95a277121c141f35061f4a2b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+27b088210da7f53cbfc85bcc75c04597483f2ba7")]
 [assembly: System.Reflection.AssemblyProductAttribute("TownSquare.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TownSquare.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
