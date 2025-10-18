@@ -1,0 +1,55 @@
+﻿@model IEnumerable<Townsquare.Models.RSVP>
+
+@{
+    ViewData["Title"] = "My RSVPs";
+}
+
+<h1>My RSVPs</h1>
+
+@if (!Model.Any())
+{
+    <p>You haven't RSVP'd to any upcoming events.</p>
+    <p><a asp-controller="Events" asp-action="Index">Browse events!</a></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Event</th>
+                <th>Date & Time</th>
+                <th>Location</th>
+                <th>Category</th>
+                <th>Created By</th>
+                <th>RSVP Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var rsvp in Model)
+            {
+                <tr>
+                    <td>@rsvp.Event.Title</td>
+                    <td>@rsvp.Event.StartUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@rsvp.Event.Location</td>
+                    <td>@rsvp.Event.Category</td>
+                    <td>@(rsvp.Event.CreatedBy?.FullName ?? "Unknown")</td>
+                    <td>@rsvp.CreatedUtc.ToLocalTime().ToString("yyyy-MM-dd")</td>
+                    <td>
+                        <a asp-controller="Events" asp-action="Details" asp-route-id="@rsvp.Event.Id">Details</a> |
+                        <form asp-controller="Rsvp" asp-action="Delete" method="post" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="eventId" value="@rsvp.Event.Id" />
+                            <button type="submit" onclick="return confirm('Cancel your RSVP?');">Cancel RSVP</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div>
+    <a asp-action="Index">Back to Profile</a> |
+    <a asp-action="EventHistory">View Past Events</a>
+</div>

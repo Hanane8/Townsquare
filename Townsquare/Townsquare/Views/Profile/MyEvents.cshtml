@@ -4,7 +4,7 @@
     ViewData["Title"] = "My Events";
 }
 
-<h1>My Events</h1>
+<h1>@ViewData["Title"]</h1>
 
 <p>
     <a asp-controller="Events" asp-action="Create">Create New Event</a>
@@ -16,13 +16,13 @@
 }
 else
 {
-    <table>
+    <table class="table">
         <thead>
             <tr>
-                <th>Title</th>
-                <th>Date & Time</th>
-                <th>Location</th>
-                <th>Category</th>
+                <th>@Html.DisplayNameFor(model => model.First().Title)</th>
+                <th>@Html.DisplayNameFor(model => model.First().StartUtc)</th>
+                <th>@Html.DisplayNameFor(model => model.First().Location)</th>
+                <th>@Html.DisplayNameFor(model => model.First().Category)</th>
                 <th>RSVPs</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -33,19 +33,20 @@ else
             {
                 var isPast = item.StartUtc < DateTime.UtcNow;
                 <tr>
-                    <td>@item.Title</td>
-                    <td>@item.StartUtc.ToLocalTime().ToString("dd-MM-yyyy HH:mm")</td>
-                    <td>@item.Location</td>
-                    <td>@item.Category</td>
+                    <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                    <td>@Html.DisplayFor(modelItem => item.StartUtc)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Location)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Category)</td>
                     <td>@item.RSVPs.Count</td>
                     <td>@(isPast ? "Past" : "Upcoming")</td>
                     <td>
-                        <a asp-controller="Events" asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                        <a asp-controller="Events" asp-action="Details" asp-route-id="@item.Id">Details</a>
                         @if (!isPast)
                         {
-                            <a asp-controller="Events" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
                             <text> | </text>
+                            <a asp-controller="Events" asp-action="Edit" asp-route-id="@item.Id">Edit</a>
                         }
+                        <text> | </text>
                         <a asp-controller="Events" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
                     </td>
                 </tr>
