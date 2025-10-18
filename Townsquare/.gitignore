@@ -1,0 +1,106 @@
+# --------------------------
+# Build & runtime artefacts
+# --------------------------
+bin/
+obj/
+out/
+artifacts/
+publish/
+Debug/
+Release/
+
+# --------------------------
+# Visual Studio specific
+# --------------------------
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.vscode/
+
+# --------------------------
+# IDE configurations
+# --------------------------
+*.rsuser
+*.sln.ide
+*.orig
+*.tmp
+*.bak
+
+# --------------------------
+# Logs & diagnostics
+# --------------------------
+*.log
+*.tlog
+*.svclog
+
+# --------------------------
+# Package managers & dependencies
+# --------------------------
+node_modules/
+bower_components/
+packages/
+wwwroot/lib/
+
+# --------------------------
+# Secrets & local settings
+# --------------------------
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.cer
+
+# --------------------------
+# EF Core migrations cache
+# --------------------------
+Migrations/
+
+# --------------------------
+# Rider / JetBrains IDEs
+# --------------------------
+.idea/
+*.iml
+
+# --------------------------
+# Docker
+# --------------------------
+docker-compose.override.yml
+docker-compose.vs.debug.yml
+docker-compose.vs.release.yml
+
+# --------------------------
+# Temporary files
+# --------------------------
+*.tmp
+*.cache
+*.dbmdl
+*.bak
+*.swp
+*.DS_Store
+Thumbs.db
+
+# --------------------------
+# OS-specific
+# --------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# --------------------------
+# Publish output
+# --------------------------
+wwwroot/dist/
+dist/
+publish/
