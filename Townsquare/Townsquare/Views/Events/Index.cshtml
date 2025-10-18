@@ -1,10 +1,10 @@
 ﻿@model IEnumerable<Townsquare.Models.Event>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Events";
 }
 
-<h1>Index</h1>
+<h1>All Events</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -30,6 +30,9 @@
             <th>
                 @Html.DisplayNameFor(model => model.CreatedBy)
             </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RSVPs)
+            </th>
             <th></th>
         </tr>
     </thead>
@@ -53,6 +56,9 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.CreatedBy.FullName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RSVPs.Count)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
