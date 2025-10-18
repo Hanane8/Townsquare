@@ -46,6 +46,12 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.CreatedBy.FullName)
         </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.RSVPs)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.RSVPs.Count)
+        </dd>
     </dl>
 </div>
 <div>
