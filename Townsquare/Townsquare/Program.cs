@@ -26,12 +26,6 @@ namespace Townsquare
 
             var app = builder.Build();
 
-            using (var scope = app.Services.CreateScope())
-            {
-                var services = scope.ServiceProvider;
-                SeedData.Initialize(services);
-            }
-
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -44,10 +38,11 @@ namespace Townsquare
                 app.UseHsts();
             }
 
-            using (var services = app.Services.CreateScope())
+            // Seed the database
+            using (var scope = app.Services.CreateScope())
             {
-                var provider = services.ServiceProvider;
-                await DbSeeder.SeedAsync(provider);
+                var services = scope.ServiceProvider;
+                await DbSeeder.SeedAsync(services);
             }
 
             app.UseHttpsRedirection();
