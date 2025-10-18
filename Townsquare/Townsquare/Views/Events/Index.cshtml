@@ -52,7 +52,7 @@
                 @Html.DisplayFor(modelItem => item.Category)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.CreatedBy.Id)
+                @Html.DisplayFor(modelItem => item.CreatedBy.FullName)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
