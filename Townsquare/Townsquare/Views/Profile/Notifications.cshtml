@@ -1,0 +1,79 @@
+﻿@model IEnumerable<Townsquare.Models.Notification>
+
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<h1>Notifications</h1>
+
+@if (Model.Any(n => !n.IsRead))
+{
+    <form asp-action="MarkAllNotificationsRead" method="post" style="display:inline;">
+        @Html.AntiForgeryToken()
+        <button type="submit">Mark All as Read</button>
+    </form>
+}
+
+<hr />
+
+@if (!Model.Any())
+{
+    <p>You have no notifications.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>User</th>
+                <th>Event</th>
+                <th>Message</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var notification in Model)
+            {
+                <tr>
+                    <td>@(notification.IsRead ? "Read" : "NEW")</td>
+                    <td>@notification.RecipientUser.FullName</td>
+                    <td>
+                        @if (notification.Event != null)
+                        {
+                            @notification.Event.Title
+                        }
+                    </td>
+                    <td>
+                        @notification.Message
+                        @if (notification.Event != null)
+                        {
+                            <br />
+                            <a asp-controller="Events" asp-action="Details" asp-route-id="@notification.EventId">View Event</a>
+                        }
+                    </td>
+                    <td>@notification.CreatedUtc.ToLocalTime().ToString("dd-MM-yyyy HH:mm")</td>
+                    <td>
+                        @if (!notification.IsRead)
+                        {
+                            <form asp-action="MarkNotificationRead" asp-route-id="@notification.Id" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit">Mark Read</button>
+                            </form>
+                            <text> | </text>
+                        }
+                        <form asp-action="DeleteNotification" asp-route-id="@notification.Id" method="post" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" onclick="return confirm('Delete this notification?');">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div>
+    <a asp-action="Index">Back to Profile</a>
+</div>
