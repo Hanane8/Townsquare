@@ -1,0 +1,25 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/Townsquare/v17/.wsuo
+/.vs/Townsquare/v17/DocumentLayout.json
+/.vs/VSWorkspaceState.json
+/Townsquare/Townsquare/obj/Debug/net8.0/Townsquare.AssemblyInfo.cs
+/Townsquare/Townsquare/obj/Debug/net8.0/Townsquare.AssemblyInfoInputs.cache
+/Townsquare/Townsquare/obj/Debug/net8.0/Townsquare.assets.cache
+/Townsquare/Townsquare/obj/Debug/net8.0/Townsquare.csproj.AssemblyReference.cache
+/Townsquare/Townsquare/obj/Debug/net8.0/Townsquare.GeneratedMSBuildEditorConfig.editorconfig
+/Townsquare/Townsquare/obj/project.assets.json
+/Townsquare/Townsquare/obj/project.nuget.cache
+/Townsquare/Townsquare/obj/Townsquare.csproj.nuget.dgspec.json
+/Townsquare/Townsquare/obj/Townsquare.csproj.nuget.g.props
+/Townsquare/TownSquare.Api/obj/Debug/net8.0/TownSquare.Api.AssemblyInfo.cs
+/Townsquare/TownSquare.Api/obj/Debug/net8.0/TownSquare.Api.AssemblyInfoInputs.cache
+/Townsquare/TownSquare.Api/obj/Debug/net8.0/TownSquare.Api.assets.cache
+/Townsquare/TownSquare.Api/obj/Debug/net8.0/TownSquare.Api.csproj.AssemblyReference.cache
+/Townsquare/TownSquare.Api/obj/Debug/net8.0/TownSquare.Api.GeneratedMSBuildEditorConfig.editorconfig
+/Townsquare/TownSquare.Api/obj/project.assets.json
+/Townsquare/TownSquare.Api/obj/project.nuget.cache
+/Townsquare/TownSquare.Api/obj/TownSquare.Api.csproj.nuget.dgspec.json
+/Townsquare/TownSquare.Api/obj/TownSquare.Api.csproj.nuget.g.props
