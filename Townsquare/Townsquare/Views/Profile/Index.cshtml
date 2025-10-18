@@ -1,0 +1,41 @@
+﻿@model Townsquare.Models.User
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<h1>My Profile</h1>
+
+<div>
+    <h2>@Model.FullName</h2>
+    <p>Email: @Model.Email</p>
+</div>
+
+<hr />
+
+<div>
+    <h3>Statistics</h3>
+    <ul>
+        <li>Events Created: <strong>@ViewBag.CreatedEventsCount</strong></li>
+        <li>RSVPs: <strong>@ViewBag.RsvpCount</strong></li>
+        <li>Unread Notifications: <strong>@ViewBag.UnreadNotifications</strong></li>
+    </ul>
+</div>
+
+<hr />
+
+<div>
+    <h3>Quick Actions</h3>
+    <ul>
+        <li><a asp-action="MyEvents">View My Events</a></li>
+        <li><a asp-action="MyRsvps">View My RSVPs</a></li>
+        <li><a asp-action="Notifications">View Notifications</a></li>
+        <li><a asp-action="EventHistory">Event History</a></li>
+        <li><a asp-action="Stats">My Statistics</a></li>
+    </ul>
+</div>
+
+<div>
+    <a asp-controller="Events" asp-action="Create">Create New Event</a> |
+    <a asp-controller="Events" asp-action="Index">Browse All Events</a>
+</div>
