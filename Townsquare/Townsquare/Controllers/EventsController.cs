@@ -7,22 +7,26 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Townsquare.Data;
 using Townsquare.Models;
+using Townsquare.Services;
 
 namespace Townsquare.Controllers
 {
     public class EventsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWeatherService _weatherService;
 
-        public EventsController(ApplicationDbContext context)
+        public EventsController(ApplicationDbContext context, IWeatherService weatherService)
         {
             _context = context;
+            _weatherService = weatherService;
         }
 
         // GET: Events
         public async Task<IActionResult> Index()
         {
-            var townsquareContext = _context.Events.Include(e => e.CreatedBy);
+            var townsquareContext = _context.Events
+                .Include(e => e.CreatedBy);
             return View(await townsquareContext.ToListAsync());
         }
 
@@ -42,6 +46,19 @@ namespace Townsquare.Controllers
                 return NotFound();
             }
 
+            // Hämta väder från extern API
+            try
+            {
+                var weather = await _weatherService.GetWeatherAsync(@event.Location);
+                ViewBag.Weather = weather;
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail the request
+                Console.WriteLine($"Error loading weather: {ex.Message}");
+                ViewBag.Weather = null;
+            }
+
             return View(@event);
         }
 
@@ -53,8 +70,6 @@ namespace Townsquare.Controllers
         }
 
         // POST: Events/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Title,Description,StartUtc,Location,Category,CreatedById")] Event @event)
@@ -87,8 +102,6 @@ namespace Townsquare.Controllers
         }
 
         // POST: Events/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,StartUtc,Location,Category,CreatedById")] Event @event)
@@ -160,5 +173,6 @@ namespace Townsquare.Controllers
         {
             return _context.Events.Any(e => e.Id == id);
         }
+
     }
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Townsquare.Data;
 using Townsquare.Models;
+using Townsquare.Services;
 
 namespace Townsquare
 {
@@ -23,6 +24,9 @@ namespace Townsquare
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddControllersWithViews();
+
+            // Register HttpClient and WeatherService
+            builder.Services.AddHttpClient<IWeatherService, WeatherService>();
 
             var app = builder.Build();
 

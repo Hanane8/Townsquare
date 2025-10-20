@@ -52,6 +52,33 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.RSVPs.Count)
         </dd>
+        
+        @if (ViewBag.Weather != null)
+        {
+            <dt class="col-sm-2">Väderprognos</dt>
+            <dd class="col-sm-10">
+                <div class="weather-info card" style="max-width: 300px;">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            @ViewBag.Weather.Icon @ViewBag.Weather.Description
+                        </h5>
+                        <p class="card-text">
+                            <strong>Temperatur:</strong> @ViewBag.Weather.Temperature.ToString("F1")°C<br/>
+                            <strong>Luftfuktighet:</strong> @ViewBag.Weather.Humidity.ToString("F0")%<br/>
+                            <strong>Vindhastighet:</strong> @ViewBag.Weather.WindSpeed.ToString("F1") km/h<br/>
+                            <small class="text-muted">Data från Open-Meteo API</small>
+                        </p>
+                    </div>
+                </div>
+            </dd>
+        }
+        else
+        {
+            <dt class="col-sm-2">Väderprognos</dt>
+            <dd class="col-sm-10">
+                <span class="text-muted">Väderinformation inte tillgänglig</span>
+            </dd>
+        }
     </dl>
 </div>
 <div>
