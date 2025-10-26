@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -15,19 +17,59 @@ namespace Townsquare.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWeatherService _weatherService;
+        private readonly UserManager<User> _userManager;
 
-        public EventsController(ApplicationDbContext context, IWeatherService weatherService)
+        public EventsController(ApplicationDbContext context, IWeatherService weatherService, UserManager<User> userManager)
         {
             _context = context;
             _weatherService = weatherService;
+            _userManager = userManager;
         }
 
         // GET: Events
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, EventCategory? category, DateTime? startDate, DateTime? endDate)
         {
-            var townsquareContext = _context.Events
-                .Include(e => e.CreatedBy);
-            return View(await townsquareContext.ToListAsync());
+            var events = _context.Events
+                .Include(e => e.CreatedBy)
+                .Include(e => e.RSVPs)
+                .AsQueryable();
+
+            // Search by keywords (title, description, location)
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                events = events.Where(e => 
+                    e.Title.Contains(searchString) || 
+                    e.Description.Contains(searchString) || 
+                    e.Location.Contains(searchString));
+            }
+
+            // Filter by category
+            if (category.HasValue)
+            {
+                events = events.Where(e => e.Category == category.Value);
+            }
+
+            // Filter by date range
+            if (startDate.HasValue)
+            {
+                events = events.Where(e => e.StartUtc >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                events = events.Where(e => e.StartUtc <= endDate.Value);
+            }
+
+            // Order by start date
+            events = events.OrderBy(e => e.StartUtc);
+
+            // Pass search parameters to view
+            ViewBag.SearchString = searchString;
+            ViewBag.SelectedCategory = category;
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
+
+            return View(await events.ToListAsync());
         }
 
         // GET: Events/Details/5
@@ -63,28 +105,36 @@ namespace Townsquare.Controllers
         }
 
         // GET: Events/Create
+        [Authorize]
         public IActionResult Create()
         {
-            ViewData["CreatedById"] = new SelectList(_context.Set<User>(), "Id", "Id");
             return View();
         }
 
         // POST: Events/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Description,StartUtc,Location,Category,CreatedById")] Event @event)
+        [Authorize]
+        public async Task<IActionResult> Create([Bind("Id,Title,Description,StartUtc,Location,Category")] Event @event)
         {
             if (ModelState.IsValid)
             {
+                // Set the creator to the current user
+                @event.CreatedById = _userManager.GetUserId(User);
+                if (@event.CreatedById == null)
+                {
+                    return Unauthorized();
+                }
+
                 _context.Add(@event);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CreatedById"] = new SelectList(_context.Set<User>(), "Id", "Id", @event.CreatedById);
             return View(@event);
         }
 
         // GET: Events/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -97,13 +147,21 @@ namespace Townsquare.Controllers
             {
                 return NotFound();
             }
-            ViewData["CreatedById"] = new SelectList(_context.Set<User>(), "Id", "Id", @event.CreatedById);
+
+            // Check if user is authorized to edit this event
+            var currentUserId = _userManager.GetUserId(User);
+            if (@event.CreatedById != currentUserId && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
             return View(@event);
         }
 
         // POST: Events/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Description,StartUtc,Location,Category,CreatedById")] Event @event)
         {
             if (id != @event.Id)
@@ -111,11 +169,31 @@ namespace Townsquare.Controllers
                 return NotFound();
             }
 
+            // Check if user is authorized to edit this event
+            var existingEvent = await _context.Events.FindAsync(id);
+            if (existingEvent == null)
+            {
+                return NotFound();
+            }
+
+            var currentUserId = _userManager.GetUserId(User);
+            if (existingEvent.CreatedById != currentUserId && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(@event);
+                    // Update the existing tracked entity instead of using Update()
+                    existingEvent.Title = @event.Title;
+                    existingEvent.Description = @event.Description;
+                    existingEvent.StartUtc = @event.StartUtc;
+                    existingEvent.Location = @event.Location;
+                    existingEvent.Category = @event.Category;
+                    // CreatedById remains unchanged
+
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -131,11 +209,11 @@ namespace Townsquare.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CreatedById"] = new SelectList(_context.Set<User>(), "Id", "Id", @event.CreatedById);
             return View(@event);
         }
 
         // GET: Events/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -151,17 +229,32 @@ namespace Townsquare.Controllers
                 return NotFound();
             }
 
+            // Check if user is authorized to delete this event
+            var currentUserId = _userManager.GetUserId(User);
+            if (@event.CreatedById != currentUserId && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
             return View(@event);
         }
 
         // POST: Events/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var @event = await _context.Events.FindAsync(id);
             if (@event != null)
             {
+                // Check if user is authorized to delete this event
+                var currentUserId = _userManager.GetUserId(User);
+                if (@event.CreatedById != currentUserId && !User.IsInRole("Admin"))
+                {
+                    return Forbid();
+                }
+
                 _context.Events.Remove(@event);
             }
 

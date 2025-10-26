@@ -6,66 +6,132 @@
 
 <h1>All Events</h1>
 
+<!-- Search and Filter Form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5>Search & Filter Events</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" asp-action="Index">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="searchString" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="searchString" name="searchString" 
+                           value="@ViewBag.SearchString" placeholder="Search by title, description, or location">
+                </div>
+                <div class="col-md-2">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="">All Categories</option>
+                        @{
+                            var selectedCategory = ViewBag.SelectedCategory?.ToString();
+                        }
+                        <option value="0" selected="@(selectedCategory == "0")">Market</option>
+                        <option value="1" selected="@(selectedCategory == "1")">Concert</option>
+                        <option value="2" selected="@(selectedCategory == "2")">Workshop</option>
+                        <option value="3" selected="@(selectedCategory == "3")">Charity</option>
+                        <option value="4" selected="@(selectedCategory == "4")">Sports</option>
+                        <option value="9" selected="@(selectedCategory == "9")">Other</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="startDate" class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="startDate" name="startDate" 
+                           value="@(ViewBag.StartDate?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-md-2">
+                    <label for="endDate" class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="endDate" name="endDate" 
+                           value="@(ViewBag.EndDate?.ToString("yyyy-MM-dd"))">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">Search</button>
+                    <a asp-action="Index" class="btn btn-secondary">Clear</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-success">Create New Event</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Title)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StartUtc)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Location)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedBy)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RSVPs)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartUtc)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Location)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Category)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedBy.FullName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RSVPs.Count)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <h4>No events found</h4>
+        <p>Try adjusting your search criteria or <a asp-action="Create">create a new event</a>.</p>
+    </div>
 }
-    </tbody>
-</table>
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.Title)</th>
+                    <th>@Html.DisplayNameFor(model => model.StartUtc)</th>
+                    <th>@Html.DisplayNameFor(model => model.Location)</th>
+                    <th>@Html.DisplayNameFor(model => model.Category)</th>
+                    <th>Created By</th>
+                    <th>RSVPs</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var isPast = item.StartUtc < DateTime.UtcNow;
+                    <tr class="@(isPast ? "table-secondary" : "")">
+                        <td>
+                            <strong>@Html.DisplayFor(modelItem => item.Title)</strong>
+                            @if (!string.IsNullOrEmpty(item.Description) && item.Description.Length > 100)
+                            {
+                                <br><small class="text-muted">@(item.Description.Substring(0, 100))...</small>
+                            }
+                            else if (!string.IsNullOrEmpty(item.Description))
+                            {
+                                <br><small class="text-muted">@item.Description</small>
+                            }
+                        </td>
+                        <td>
+                            @item.StartUtc.ToLocalTime().ToString("MMM dd, yyyy")
+                            <br><small class="text-muted">@item.StartUtc.ToLocalTime().ToString("HH:mm")</small>
+                        </td>
+                        <td>@Html.DisplayFor(modelItem => item.Location)</td>
+                        <td>
+                            <span class="badge bg-primary">@Html.DisplayFor(modelItem => item.Category)</span>
+                        </td>
+                        <td>@(item.CreatedBy?.FullName ?? "Unknown")</td>
+                        <td>
+                            <span class="badge bg-success">@item.RSVPs.Count</span>
+                        </td>
+                        <td>
+                            @if (isPast)
+                            {
+                                <span class="badge bg-secondary">Past</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-primary">Upcoming</span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Details</a>
+                            @if (!isPast)
+                            {
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">Edit</a>
+                            }
+                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="mt-3">
+        <small class="text-muted">Showing @Model.Count() event(s)</small>
+    </div>
+}
