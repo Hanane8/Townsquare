@@ -26,7 +26,10 @@ namespace Townsquare
             builder.Services.AddControllersWithViews();
 
             // Register HttpClient and WeatherService
-            builder.Services.AddHttpClient<IWeatherService, WeatherService>();
+            builder.Services.AddHttpClient<IWeatherService, WeatherService>(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(10);
+            });
 
             var app = builder.Build();
 

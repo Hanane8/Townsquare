@@ -7,15 +7,15 @@
 <div class="row">
     <div class="col-md-8">
         <h1>@Model.Title</h1>
-        
+
         <div class="card mb-4">
             <div class="card-body">
-                <dl class="row">
+    <dl class="row">
                     <dt class="col-sm-3">Date & Time</dt>
                     <dd class="col-sm-9">
                         <strong>@Model.StartUtc.ToLocalTime().ToString("dddd, MMMM dd, yyyy")</strong><br>
                         <span class="text-muted">@Model.StartUtc.ToLocalTime().ToString("HH:mm")</span>
-                    </dd>
+        </dd>
                     
                     <dt class="col-sm-3">Location</dt>
                     <dd class="col-sm-9">@Model.Location</dd>
@@ -23,7 +23,7 @@
                     <dt class="col-sm-3">Category</dt>
                     <dd class="col-sm-9">
                         <span class="badge bg-primary">@Model.Category</span>
-                    </dd>
+        </dd>
                     
                     <dt class="col-sm-3">Organized by</dt>
                     <dd class="col-sm-9">@(Model.CreatedBy?.FullName ?? "Unknown")</dd>
@@ -33,14 +33,14 @@
                 </dl>
             </div>
         </div>
-
+        
         @if (ViewBag.Weather != null)
         {
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">Weather Forecast</h5>
                 </div>
-                <div class="card-body">
+                    <div class="card-body">
                     <div class="weather-info">
                         <h5 class="card-title">
                             @ViewBag.Weather.Icon @ViewBag.Weather.Description
@@ -52,6 +52,34 @@
                             <small class="text-muted">Data from Open-Meteo API</small>
                         </p>
                     </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Weather</h5>
+                </div>
+                <div class="card-body">
+                    @if (TempData["WeatherWarning"] != null)
+                    {
+                        <div class="alert alert-warning">
+                            <strong>⚠️ @TempData["WeatherWarning"]</strong>
+                        </div>
+                    }
+                    else if (TempData["WeatherError"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            <strong>❌ @TempData["WeatherError"]</strong>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <strong>ℹ️ Weather information not available</strong>
+                        </div>
+                    }
                 </div>
             </div>
         }
