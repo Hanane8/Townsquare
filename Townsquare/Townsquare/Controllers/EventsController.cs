@@ -82,11 +82,26 @@ namespace Townsquare.Controllers
 
             var @event = await _context.Events
                 .Include(e => e.CreatedBy)
+                .Include(e => e.RSVPs)
+                    .ThenInclude(r => r.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (@event == null)
             {
                 return NotFound();
             }
+
+            // Check if current user has RSVP'd
+            var currentUserId = _userManager.GetUserId(User);
+            var userHasRsvp = false;
+            if (currentUserId != null)
+            {
+                userHasRsvp = @event.RSVPs.Any(r => r.UserId == currentUserId);
+            }
+
+            ViewBag.UserHasRsvp = userHasRsvp;
+            ViewBag.IsLoggedIn = User.Identity?.IsAuthenticated ?? false;
+            ViewBag.CurrentUserId = currentUserId;
+            ViewBag.IsEventCreator = @event.CreatedById == currentUserId;
 
             // Hämta väder från extern API
             try

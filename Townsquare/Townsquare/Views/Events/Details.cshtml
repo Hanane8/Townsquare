@@ -1,87 +1,165 @@
 ﻿@model Townsquare.Models.Event
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Event Details";
 }
 
-<h1>Details</h1>
-
-<div>
-    <h4>Event</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.StartUtc)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.StartUtc)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Location)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Location)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Category)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Category)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedBy)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedBy.FullName)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.RSVPs)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.RSVPs.Count)
-        </dd>
+<div class="row">
+    <div class="col-md-8">
+        <h1>@Model.Title</h1>
         
+        <div class="card mb-4">
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Date & Time</dt>
+                    <dd class="col-sm-9">
+                        <strong>@Model.StartUtc.ToLocalTime().ToString("dddd, MMMM dd, yyyy")</strong><br>
+                        <span class="text-muted">@Model.StartUtc.ToLocalTime().ToString("HH:mm")</span>
+                    </dd>
+                    
+                    <dt class="col-sm-3">Location</dt>
+                    <dd class="col-sm-9">@Model.Location</dd>
+                    
+                    <dt class="col-sm-3">Category</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge bg-primary">@Model.Category</span>
+                    </dd>
+                    
+                    <dt class="col-sm-3">Organized by</dt>
+                    <dd class="col-sm-9">@(Model.CreatedBy?.FullName ?? "Unknown")</dd>
+                    
+                    <dt class="col-sm-3">Description</dt>
+                    <dd class="col-sm-9">@Model.Description</dd>
+                </dl>
+            </div>
+        </div>
+
         @if (ViewBag.Weather != null)
         {
-            <dt class="col-sm-2">Väderprognos</dt>
-            <dd class="col-sm-10">
-                <div class="weather-info card" style="max-width: 300px;">
-                    <div class="card-body">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Weather Forecast</h5>
+                </div>
+                <div class="card-body">
+                    <div class="weather-info">
                         <h5 class="card-title">
                             @ViewBag.Weather.Icon @ViewBag.Weather.Description
                         </h5>
                         <p class="card-text">
-                            <strong>Temperatur:</strong> @ViewBag.Weather.Temperature.ToString("F1")°C<br/>
-                            <strong>Luftfuktighet:</strong> @ViewBag.Weather.Humidity.ToString("F0")%<br/>
-                            <strong>Vindhastighet:</strong> @ViewBag.Weather.WindSpeed.ToString("F1") km/h<br/>
-                            <small class="text-muted">Data från Open-Meteo API</small>
+                            <strong>Temperature:</strong> @ViewBag.Weather.Temperature.ToString("F1")°C<br/>
+                            <strong>Humidity:</strong> @ViewBag.Weather.Humidity.ToString("F0")%<br/>
+                            <strong>Wind Speed:</strong> @ViewBag.Weather.WindSpeed.ToString("F1") km/h<br/>
+                            <small class="text-muted">Data from Open-Meteo API</small>
                         </p>
                     </div>
                 </div>
-            </dd>
+            </div>
         }
-        else
+    </div>
+    
+    <div class="col-md-4">
+        <!-- RSVP Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">RSVP</h5>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.IsLoggedIn)
+                {
+                    @if (ViewBag.IsEventCreator)
+                    {
+                        <div class="alert alert-info">
+                            <strong>You are the organizer of this event.</strong>
+                        </div>
+                    }
+                    else
+                    {
+                        @if (ViewBag.UserHasRsvp)
+                        {
+                            <div class="alert alert-success">
+                                <strong>✓ You are attending this event!</strong>
+                            </div>
+                            <form asp-controller="Rsvp" asp-action="Delete" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="eventId" value="@Model.Id" />
+                                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Cancel your RSVP?')">
+                                    Cancel RSVP
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-controller="Rsvp" asp-action="Create" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="eventId" value="@Model.Id" />
+                                <button type="submit" class="btn btn-success">
+                                    RSVP to this Event
+                                </button>
+                            </form>
+                        }
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <strong>Please <a asp-area="Identity" asp-page="/Account/Login">log in</a> to RSVP to this event.</strong>
+                    </div>
+                }
+                
+                <hr>
+                <div class="text-center">
+                    <h6>@Model.RSVPs.Count people are attending</h6>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendees List -->
+        @if (ViewBag.IsLoggedIn && Model.RSVPs.Any())
         {
-            <dt class="col-sm-2">Väderprognos</dt>
-            <dd class="col-sm-10">
-                <span class="text-muted">Väderinformation inte tillgänglig</span>
-            </dd>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Attendees</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        @foreach (var rsvp in Model.RSVPs.OrderBy(r => r.CreatedUtc))
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <div>
+                                    <strong>@rsvp.User.FullName</strong>
+                                    <br><small class="text-muted">RSVP'd @rsvp.CreatedUtc.ToLocalTime().ToString("MMM dd")</small>
+                                </div>
+                                @if (rsvp.UserId == ViewBag.CurrentUserId)
+                                {
+                                    <span class="badge bg-primary">You</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
         }
-    </dl>
+        else if (!ViewBag.IsLoggedIn && Model.RSVPs.Any())
+        {
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Attendees</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Log in to see who's attending!</strong>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<div class="mt-4">
+    @if (ViewBag.IsLoggedIn && (ViewBag.IsEventCreator || User.IsInRole("Admin")))
+    {
+        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">Edit Event</a>
+        <a asp-action="Delete" asp-route-id="@Model?.Id" class="btn btn-danger">Delete Event</a>
+    }
+    <a asp-action="Index" class="btn btn-secondary">Back to Events</a>
 </div>
