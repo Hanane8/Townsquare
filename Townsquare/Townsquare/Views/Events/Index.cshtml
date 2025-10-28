@@ -119,11 +119,19 @@ else
                         </td>
                         <td>
                             <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Details</a>
-                            @if (!isPast)
+                            @{
+                                var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                                var canEdit = !isPast && (item.CreatedById == currentUserId || User.IsInRole("Admin"));
+                                var canDelete = item.CreatedById == currentUserId || User.IsInRole("Admin");
+                            }
+                            @if (canEdit)
                             {
                                 <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">Edit</a>
                             }
-                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                            @if (canDelete)
+                            {
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                            }
                         </td>
                     </tr>
                 }
