@@ -38,7 +38,7 @@ else
             {
                 <tr>
                     <td>@(notification.IsRead ? "Read" : "NEW")</td>
-                    <td>@notification.RecipientUser.FullName</td>
+                    <td>@(notification.RecipientUser?.FullName ?? "Unknown User")</td>
                     <td>
                         @if (notification.Event != null)
                         {

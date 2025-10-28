@@ -112,6 +112,7 @@ namespace Townsquare.Controllers
             var notifications = await _context.Notifications
                 .Where(n => n.RecipientUserId == userId)
                 .Include(n => n.Event)
+                .Include(n => n.RecipientUser)
                 .OrderByDescending(n => n.CreatedUtc)
                 .Take(50) // Limit to last 50 notifications
                 .ToListAsync();
