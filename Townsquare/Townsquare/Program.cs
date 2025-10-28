@@ -19,7 +19,7 @@ namespace Townsquare
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services
-                .AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = false)
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
