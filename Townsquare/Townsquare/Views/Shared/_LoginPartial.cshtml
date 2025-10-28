@@ -6,22 +6,39 @@
 <ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
-    <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
-    </li>
-    <li class="nav-item">
-        <form  class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link text-dark">Logout</button>
-        </form>
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-dark d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="badge bg-primary rounded-pill me-2">👤</span>
+            @User.Identity?.Name
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+            <li>
+                <a class="dropdown-item d-flex align-items-center" asp-area="Identity" asp-page="/Account/Manage/Index">
+                    <span class="me-2">⚙️</span>Profile Settings
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                    <button type="submit" class="dropdown-item text-danger d-flex align-items-center w-100">
+                        <span class="me-2">🚪</span>Logout
+                    </button>
+                </form>
+            </li>
+        </ul>
     </li>
 }
 else
 {
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
+    <li class="nav-item me-2">
+        <a class="btn btn-outline-primary btn-sm rounded-pill px-3" asp-area="Identity" asp-page="/Account/Login">
+            <span class="me-1">🔑</span>Login
+        </a>
     </li>
     <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
+        <a class="btn btn-primary btn-sm rounded-pill px-3" asp-area="Identity" asp-page="/Account/Register">
+            <span class="me-1">📝</span>Register
+        </a>
     </li>
 }
 </ul>

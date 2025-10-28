@@ -46,3 +46,47 @@ button.accept-policy {
   white-space: nowrap;
   line-height: 60px;
 }
+
+/* Bootstrap-based login/logout improvements */
+.navbar-nav .btn {
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.navbar-nav .btn:hover {
+  transform: translateY(-1px);
+}
+
+.navbar-nav .btn-sm {
+  font-size: 0.875rem;
+}
+
+.dropdown-menu {
+  border: 1px solid rgba(0,0,0,.15);
+  border-radius: 0.375rem;
+}
+
+.dropdown-item {
+  transition: all 0.15s ease-in-out;
+}
+
+.dropdown-item:hover {
+  background-color: var(--bs-gray-100);
+}
+
+.dropdown-item.text-danger:hover {
+  background-color: var(--bs-danger-bg-subtle);
+  color: var(--bs-danger);
+}
+
+.navbar-nav .nav-link.dropdown-toggle {
+  transition: all 0.15s ease-in-out;
+}
+
+.navbar-nav .nav-link.dropdown-toggle:hover {
+  background-color: var(--bs-gray-100);
+}
+
+.badge.rounded-pill {
+  font-size: 0.75rem;
+}
