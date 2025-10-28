@@ -1,0 +1,73 @@
+@model IEnumerable<Townsquare.Models.RSVP>
+
+@{
+    ViewData["Title"] = "Event History";
+}
+
+<h1>Event History</h1>
+<p class="text-muted">Events you have attended in the past</p>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <h4>No Past Events</h4>
+        <p>You haven't attended any events yet. <a asp-controller="Events" asp-action="Index">Browse upcoming events</a> to get started!</p>
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var rsvp in Model)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@rsvp.Event.Title</h5>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                @rsvp.Event.StartUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                            </small>
+                        </p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                @rsvp.Event.Location
+                            </small>
+                        </p>
+                        <p class="card-text">
+                            <span class="badge bg-primary">@rsvp.Event.Category</span>
+                        </p>
+                        <p class="card-text">@rsvp.Event.Description</p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-user me-1"></i>
+                                Organized by: @(rsvp.Event.CreatedBy?.FullName ?? "Unknown")
+                            </small>
+                        </p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                RSVP'd on: @rsvp.CreatedUtc.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                            </small>
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <a asp-controller="Events" asp-action="Details" asp-route-id="@rsvp.EventId" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-eye me-1"></i>View Event Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<div class="mt-4">
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Back to Profile
+    </a>
+    <a asp-controller="Events" asp-action="Index" class="btn btn-primary">
+        <i class="fas fa-calendar me-1"></i>Browse Upcoming Events
+    </a>
+</div>
