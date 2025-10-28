@@ -1,0 +1,100 @@
+@{
+    ViewData["Title"] = "Manage Roles";
+    var user = ViewBag.User as Townsquare.Models.User;
+    var userRoles = ViewBag.UserRoles as IList<string>;
+    var allRoles = ViewBag.AllRoles as IEnumerable<Microsoft.AspNetCore.Identity.IdentityRole>;
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Manage Roles for @user?.FullName</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Current Roles</h5>
+            </div>
+            <div class="card-body">
+                @if (userRoles != null && userRoles.Any())
+                {
+                    <div class="list-group">
+                        @foreach (var role in userRoles)
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <span class="badge bg-primary">@role</span>
+                                <form asp-action="RemoveRole" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="userId" value="@user?.Id" />
+                                    <input type="hidden" name="roleName" value="@role" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                            onclick="return confirm('Remove @role role?')">
+                                        Remove
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <strong>No roles assigned</strong><br>
+                        This user has no roles assigned.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Available Roles</h5>
+            </div>
+            <div class="card-body">
+                @if (allRoles != null && allRoles.Any())
+                {
+                    <div class="list-group">
+                        @foreach (var role in allRoles)
+                        {
+                            var isAssigned = userRoles != null && userRoles.Contains(role.Name);
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <span class="badge bg-secondary">@role.Name</span>
+                                @if (!isAssigned)
+                                {
+                                    <form asp-action="AddRole" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@user?.Id" />
+                                        <input type="hidden" name="roleName" value="@role.Name" />
+                                        <button type="submit" class="btn btn-sm btn-outline-success">
+                                            Add
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Already assigned</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <strong>No roles available</strong><br>
+                        No roles have been created in the system.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a asp-action="UserDetails" asp-route-id="@user?.Id" class="btn btn-secondary">Back to User</a>
+    <a asp-action="ManageUsers" class="btn btn-outline-secondary">All Users</a>
+</div>

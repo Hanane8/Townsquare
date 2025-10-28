@@ -1,0 +1,132 @@
+@model IEnumerable<Townsquare.Models.Event>
+
+@{
+    ViewData["Title"] = "Orphaned Events";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Orphaned Events</h1>
+        <p class="text-muted">Events created by users who have been deleted from the system.</p>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-success">
+        <h4>No orphaned events!</h4>
+        <p>All events have valid creators. The system is clean.</p>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">
+        <h4>@Model.Count() orphaned events found</h4>
+        <p>These events were created by users who have been deleted. You can either delete them or reassign them to existing users.</p>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Orphaned Events</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Date & Time</th>
+                            <th>Location</th>
+                            <th>Category</th>
+                            <th>RSVPs</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var evt in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@evt.Title</strong>
+                                    @if (!string.IsNullOrEmpty(evt.Description) && evt.Description.Length > 100)
+                                    {
+                                        <br><small class="text-muted">@(evt.Description.Substring(0, 100))...</small>
+                                    }
+                                    else if (!string.IsNullOrEmpty(evt.Description))
+                                    {
+                                        <br><small class="text-muted">@evt.Description</small>
+                                    }
+                                </td>
+                                <td>
+                                    @evt.StartUtc.ToLocalTime().ToString("MMM dd, yyyy")
+                                    <br><small class="text-muted">@evt.StartUtc.ToLocalTime().ToString("HH:mm")</small>
+                                </td>
+                                <td>@evt.Location</td>
+                                <td>
+                                    <span class="badge bg-primary">@evt.Category</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">@evt.RSVPs.Count</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-warning" 
+                                                data-bs-toggle="modal" data-bs-target="#reassignModal-@evt.Id">
+                                            Reassign
+                                        </button>
+                                        <form asp-action="DeleteOrphanedEvent" method="post" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@evt.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                    onclick="return confirm('Delete this orphaned event? This will also delete all associated RSVPs.')">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="mt-4">
+    <a asp-action="Index" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+
+<!-- Reassign Modal -->
+@foreach (var evt in Model)
+{
+    <div class="modal fade" id="reassignModal-@evt.Id" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Reassign Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="ReassignEvent" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="eventId" value="@evt.Id" />
+                    <div class="modal-body">
+                        <p>Reassign <strong>@evt.Title</strong> to a new owner:</p>
+                        <div class="mb-3">
+                            <label for="newOwnerId-@evt.Id" class="form-label">Select User</label>
+                            <select name="newOwnerId" id="newOwnerId-@evt.Id" class="form-select" required>
+                                <option value="">-- Select a user --</option>
+                                <!-- This would need to be populated with actual users -->
+                                <option value="admin">Admin User</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning">Reassign Event</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}

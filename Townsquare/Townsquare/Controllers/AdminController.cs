@@ -59,12 +59,20 @@ namespace Townsquare.Controllers
 
             // Get roles for each user
             var userRoles = new Dictionary<string, IList<string>>();
+            var userStats = new Dictionary<string, (int eventsCreated, int rsvpsCount)>();
+            
             foreach (var user in userList)
             {
                 userRoles[user.Id] = await _userManager.GetRolesAsync(user);
+                
+                // Get user statistics
+                var eventsCreated = await _context.Events.CountAsync(e => e.CreatedById == user.Id);
+                var rsvpsCount = await _context.RSVPs.CountAsync(r => r.UserId == user.Id);
+                userStats[user.Id] = (eventsCreated, rsvpsCount);
             }
 
             ViewBag.UserRoles = userRoles;
+            ViewBag.UserStats = userStats;
             ViewBag.SearchString = searchString;
 
             return View(userList);

@@ -1,0 +1,102 @@
+@model Townsquare.Models.User
+
+@{
+    ViewData["Title"] = "User Details";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">User Details</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">User Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Full Name</dt>
+                    <dd class="col-sm-9">@Model.FullName</dd>
+                    
+                    <dt class="col-sm-3">Email</dt>
+                    <dd class="col-sm-9">@Model.Email</dd>
+                    
+                    <dt class="col-sm-3">Email Confirmed</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.EmailConfirmed)
+                        {
+                            <span class="badge bg-success">Confirmed</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning">Not Confirmed</span>
+                        }
+                    </dd>
+                    
+                    <dt class="col-sm-3">Roles</dt>
+                    <dd class="col-sm-9">
+                        @if (ViewBag.Roles != null && ((IList<string>)ViewBag.Roles).Any())
+                        {
+                            @foreach (var role in (IList<string>)ViewBag.Roles)
+                            {
+                                <span class="badge bg-primary me-1">@role</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">No roles assigned</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h4 class="text-primary">@ViewBag.EventsCreated</h4>
+                        <small class="text-muted">Events Created</small>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">@ViewBag.RsvpsCount</h4>
+                        <small class="text-muted">RSVPs</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a asp-action="ManageRoles" asp-route-id="@Model.Id" 
+                       class="btn btn-warning">Manage Roles</a>
+                    <form asp-action="DeleteUser" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-danger w-100" 
+                                onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">
+                            Delete User
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a asp-action="ManageUsers" class="btn btn-secondary">Back to Users</a>
+    <a asp-action="Index" class="btn btn-outline-secondary">Dashboard</a>
+</div>

@@ -1,0 +1,138 @@
+@{
+    ViewData["Title"] = "Event Statistics";
+    var eventsByCategory = ViewBag.EventsByCategory as IEnumerable<dynamic>;
+    var upcomingEvents = ViewBag.UpcomingEvents;
+    var pastEvents = ViewBag.PastEvents;
+    var mostPopularEvent = ViewBag.MostPopularEvent as Townsquare.Models.Event;
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Event Statistics</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3>@upcomingEvents</h3>
+                <p class="mb-0">Upcoming Events</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card bg-secondary text-white">
+            <div class="card-body text-center">
+                <h3>@pastEvents</h3>
+                <p class="mb-0">Past Events</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3>@(upcomingEvents + pastEvents)</h3>
+                <p class="mb-0">Total Events</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Events by Category</h5>
+            </div>
+            <div class="card-body">
+                @if (eventsByCategory != null && eventsByCategory.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var category in eventsByCategory)
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <span class="badge bg-primary">@category.Category</span>
+                                <span class="badge bg-secondary">@category.Count events</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <strong>No events found</strong><br>
+                        No events have been created yet.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Most Popular Event</h5>
+            </div>
+            <div class="card-body">
+                @if (mostPopularEvent != null)
+                {
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title">@mostPopularEvent.Title</h6>
+                            <p class="card-text">
+                                <small class="text-muted">@mostPopularEvent.StartUtc.ToLocalTime().ToString("MMM dd, yyyy")</small><br>
+                                <strong>@mostPopularEvent.RSVPs.Count RSVPs</strong>
+                            </p>
+                            <a asp-controller="Events" asp-action="Details" asp-route-id="@mostPopularEvent.Id" 
+                               class="btn btn-sm btn-outline-primary">View Details</a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <strong>No events found</strong><br>
+                        No events have been created yet.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">System Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <h4 class="text-primary">@upcomingEvents</h4>
+                        <small class="text-muted">Upcoming Events</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h4 class="text-secondary">@pastEvents</h4>
+                        <small class="text-muted">Past Events</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h4 class="text-success">@(mostPopularEvent?.RSVPs.Count ?? 0)</h4>
+                        <small class="text-muted">Most Popular RSVPs</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h4 class="text-info">@(eventsByCategory?.Count() ?? 0)</h4>
+                        <small class="text-muted">Categories Used</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a asp-action="Index" class="btn btn-secondary">Back to Dashboard</a>
+</div>
