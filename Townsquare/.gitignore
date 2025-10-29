@@ -46,7 +46,7 @@ wwwroot/lib/
 # --------------------------
 # Secrets & local settings
 # --------------------------
-Townsquare/appsettings.Development.json
+appsettings.Development.json
 appsettings.Local.json
 appsettings.*.local.json
 secrets.json
