@@ -57,6 +57,19 @@ cd townsquare
 ### 2. Database Setup
 The application uses SQL Server LocalDB with Entity Framework Code-First approach.
 
+#### Security Note
+
+While the default LocalDB connection string is included in `appsettings.json`, 
+this is acceptable because:
+- LocalDB uses Windows Authentication (no passwords)
+- The database is local-only (no external access)
+- This is a standard development configuration
+
+In a production environment, connection strings would be:
+- Stored in environment variables or Azure Key Vault
+- Never committed to source control
+- Configured differently per environment
+
 **Connection String**: The default connection string is configured for LocalDB:
 ```json
 "ConnectionStrings": {
