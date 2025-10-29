@@ -104,16 +104,33 @@ namespace Townsquare.Controllers
             ViewBag.IsEventCreator = @event.CreatedById == currentUserId;
 
             // Hämta väder från extern API
+            // Dans la méthode Details
             try
             {
-                var weather = await _weatherService.GetWeatherAsync(@event.Location);
-                ViewBag.Weather = weather;
+                var weather = await _weatherService.GetWeatherAsync(@event.Location, @event.StartUtc);
+
+                if (weather != null)
+                {
+                    ViewBag.Weather = weather;
+                }
+                else
+                {
+                    // Event is too far in the future or in the past
+                    var daysUntilEvent = (@event.StartUtc.Date - DateTime.UtcNow.Date).Days;
+
+                    if (daysUntilEvent > 16)
+                    {
+                        TempData["WeatherWarning"] = "Weather forecast only available for events within 16 days.";
+                    }
+                    else if (daysUntilEvent < 0)
+                    {
+                        TempData["WeatherWarning"] = "Weather data not available for past events.";
+                    }
+                }
             }
             catch (Exception ex)
             {
-                // Log error but don't fail the request
-                Console.WriteLine($"Error loading weather: {ex.Message}");
-                ViewBag.Weather = null;
+                TempData["WeatherError"] = "Unable to fetch weather data.";
             }
 
             return View(@event);

@@ -5,7 +5,7 @@ namespace Townsquare.Services
 {
     public interface IWeatherService
     {
-        Task<WeatherInfo?> GetWeatherAsync(string location);
+        Task<WeatherInfo?> GetWeatherAsync(string location, DateTime eventDate);
     }
 
     public class WeatherInfo
@@ -28,14 +28,40 @@ namespace Townsquare.Services
             _logger = logger;
         }
 
-        public async Task<WeatherInfo?> GetWeatherAsync(string location)
+        public async Task<WeatherInfo?> GetWeatherAsync(string location, DateTime eventDate)
         {
             try
             {
                 var (latitude, longitude) = GetCoordinatesForLocation(location);
 
-                // Use InvariantCulture to ensure decimal point (not comma)
-                var url = $"https://api.open-meteo.com/v1/forecast?latitude={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&longitude={longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto";
+                // Check if event is more than 16 days in the future (API limit)
+                var daysUntilEvent = (eventDate.Date - DateTime.UtcNow.Date).Days;
+
+                string url;
+
+                if (daysUntilEvent < 0)
+                {
+                    // Event is in the past
+                    _logger.LogWarning("Event date {EventDate} is in the past", eventDate);
+                    return null;
+                }
+                else if (daysUntilEvent > 16)
+                {
+                    // Event is too far in the future for forecast
+                    _logger.LogWarning("Event date {EventDate} is more than 16 days in the future", eventDate);
+                    return null;
+                }
+                else if (daysUntilEvent == 0)
+                {
+                    // Event is today - use current weather
+                    url = $"https://api.open-meteo.com/v1/forecast?latitude={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&longitude={longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto";
+                }
+                else
+                {
+                    // Event is in the future - use daily forecast
+                    var dateStr = eventDate.ToString("yyyy-MM-dd");
+                    url = $"https://api.open-meteo.com/v1/forecast?latitude={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&longitude={longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code,wind_speed_10m_max&timezone=auto&start_date={dateStr}&end_date={dateStr}";
+                }
 
                 _logger.LogInformation("Calling weather API: {Url}", url);
 
@@ -52,7 +78,6 @@ namespace Townsquare.Services
 
                 var jsonContent = await response.Content.ReadAsStringAsync();
 
-                // Log pour déboguer
                 _logger.LogDebug("Weather API Response: {Response}", jsonContent);
 
                 var options = new JsonSerializerOptions
@@ -60,24 +85,54 @@ namespace Townsquare.Services
                     PropertyNameCaseInsensitive = true
                 };
 
-                var weatherData = JsonSerializer.Deserialize<OpenMeteoResponse>(jsonContent, options);
-
-                if (weatherData?.Current == null)
+                if (daysUntilEvent == 0)
                 {
-                    _logger.LogWarning("Weather API returned null data");
-                    return null;
+                    // Parse current weather
+                    var weatherData = JsonSerializer.Deserialize<OpenMeteoResponse>(jsonContent, options);
+
+                    if (weatherData?.Current == null)
+                    {
+                        _logger.LogWarning("Weather API returned null data");
+                        return null;
+                    }
+
+                    var (description, icon) = GetWeatherInfo(weatherData.Current.WeatherCode);
+
+                    return new WeatherInfo
+                    {
+                        Temperature = weatherData.Current.Temperature2m,
+                        Humidity = weatherData.Current.RelativeHumidity2m,
+                        WindSpeed = weatherData.Current.WindSpeed10m,
+                        Description = description,
+                        Icon = icon
+                    };
                 }
-
-                var (description, icon) = GetWeatherInfo(weatherData.Current.WeatherCode);
-
-                return new WeatherInfo
+                else
                 {
-                    Temperature = weatherData.Current.Temperature2m,
-                    Humidity = weatherData.Current.RelativeHumidity2m,
-                    WindSpeed = weatherData.Current.WindSpeed10m,
-                    Description = description,
-                    Icon = icon
-                };
+                    // Parse daily forecast
+                    var forecastData = JsonSerializer.Deserialize<OpenMeteoForecastResponse>(jsonContent, options);
+
+                    if (forecastData?.Daily == null || forecastData.Daily.Temperature2mMax == null || !forecastData.Daily.Temperature2mMax.Any())
+                    {
+                        _logger.LogWarning("Weather API returned null forecast data");
+                        return null;
+                    }
+
+                    var weatherCode = forecastData.Daily.WeatherCode?[0] ?? 0;
+                    var (description, icon) = GetWeatherInfo(weatherCode);
+
+                    // Use average of max and min temperature
+                    var avgTemp = (forecastData.Daily.Temperature2mMax[0] + forecastData.Daily.Temperature2mMin[0]) / 2;
+
+                    return new WeatherInfo
+                    {
+                        Temperature = avgTemp,
+                        Humidity = 0, // Not available in daily forecast
+                        WindSpeed = forecastData.Daily.WindSpeed10mMax?[0] ?? 0,
+                        Description = description,
+                        Icon = icon
+                    };
+                }
             }
             catch (Exception ex)
             {
@@ -175,5 +230,39 @@ namespace Townsquare.Services
 
         [JsonPropertyName("weather_code")]
         public int WeatherCode { get; set; }
+    }
+
+    // For daily forecasts
+    public class OpenMeteoForecastResponse
+    {
+        [JsonPropertyName("latitude")]
+        public double Latitude { get; set; }
+
+        [JsonPropertyName("longitude")]
+        public double Longitude { get; set; }
+
+        [JsonPropertyName("daily")]
+        public DailyWeather Daily { get; set; } = new();
+    }
+
+    public class DailyWeather
+    {
+        [JsonPropertyName("time")]
+        public List<string> Time { get; set; } = new();
+
+        [JsonPropertyName("temperature_2m_max")]
+        public List<double> Temperature2mMax { get; set; } = new();
+
+        [JsonPropertyName("temperature_2m_min")]
+        public List<double> Temperature2mMin { get; set; } = new();
+
+        [JsonPropertyName("wind_speed_10m_max")]
+        public List<double> WindSpeed10mMax { get; set; } = new();
+
+        [JsonPropertyName("weather_code")]
+        public List<int> WeatherCode { get; set; } = new();
+
+        [JsonPropertyName("precipitation_sum")]
+        public List<double> PrecipitationSum { get; set; } = new();
     }
 }
