@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Townsquare.Services
 {
@@ -31,22 +32,35 @@ namespace Townsquare.Services
         {
             try
             {
-                // Få koordinater för platsen
                 var (latitude, longitude) = GetCoordinatesForLocation(location);
-                
-                // Skapa API URL för Open-Meteo
-                var url = $"https://api.open-meteo.com/v1/forecast?latitude={latitude:F2}&longitude={longitude:F2}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=Europe%2FStockholm";
+
+                // Use InvariantCulture to ensure decimal point (not comma)
+                var url = $"https://api.open-meteo.com/v1/forecast?latitude={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&longitude={longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto";
 
                 _logger.LogInformation("Calling weather API: {Url}", url);
 
                 var response = await _httpClient.GetAsync(url);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError("Weather API error: Status={Status}, Content={Content}", response.StatusCode, errorContent);
+                    return null;
+                }
+
                 response.EnsureSuccessStatusCode();
 
                 var jsonContent = await response.Content.ReadAsStringAsync();
-                var weatherData = JsonSerializer.Deserialize<OpenMeteoResponse>(jsonContent, new JsonSerializerOptions
+
+                // Log pour déboguer
+                _logger.LogDebug("Weather API Response: {Response}", jsonContent);
+
+                var options = new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
-                });
+                };
+
+                var weatherData = JsonSerializer.Deserialize<OpenMeteoResponse>(jsonContent, options);
 
                 if (weatherData?.Current == null)
                 {
@@ -54,14 +68,13 @@ namespace Townsquare.Services
                     return null;
                 }
 
-                // Konvertera väderkod till beskrivning och ikon
-                var (description, icon) = GetWeatherInfo(weatherData.Current.Weather_code);
+                var (description, icon) = GetWeatherInfo(weatherData.Current.WeatherCode);
 
                 return new WeatherInfo
                 {
-                    Temperature = weatherData.Current.Temperature_2m,
-                    Humidity = weatherData.Current.Relative_humidity_2m,
-                    WindSpeed = weatherData.Current.Wind_speed_10m,
+                    Temperature = weatherData.Current.Temperature2m,
+                    Humidity = weatherData.Current.RelativeHumidity2m,
+                    WindSpeed = weatherData.Current.WindSpeed10m,
                     Description = description,
                     Icon = icon
                 };
@@ -77,74 +90,90 @@ namespace Townsquare.Services
         {
             return weatherCode switch
             {
-                0 => ("Klart väder", "☀️"),
-                1 => ("Huvudsakligen klart", "🌤️"),
-                2 => ("Delvis molnigt", "⛅"),
-                3 => ("Mulet", "☁️"),
-                45 => ("Dimma", "🌫️"),
-                48 => ("Rimedimma", "🌫️"),
-                51 => ("Lätt duggregn", "🌦️"),
-                53 => ("Måttligt duggregn", "🌦️"),
-                55 => ("Tätt duggregn", "🌦️"),
-                61 => ("Lätt regn", "🌧️"),
-                63 => ("Måttligt regn", "🌧️"),
-                65 => ("Kraftigt regn", "🌧️"),
-                71 => ("Lätt snöfall", "🌨️"),
-                73 => ("Måttligt snöfall", "🌨️"),
-                75 => ("Kraftigt snöfall", "🌨️"),
-                77 => ("Snökorn", "🌨️"),
-                80 => ("Lätta regnskurar", "🌦️"),
-                81 => ("Måttliga regnskurar", "🌦️"),
-                82 => ("Kraftiga regnskurar", "🌦️"),
-                85 => ("Lätta snöskurar", "🌨️"),
-                86 => ("Kraftiga snöskurar", "🌨️"),
-                95 => ("Åska", "⛈️"),
-                96 => ("Åska med lätt hagel", "⛈️"),
-                99 => ("Åska med kraftigt hagel", "⛈️"),
-                _ => ("Okänt väder", "❓")
+                0 => ("Clear sky", "☀️"),
+                1 => ("Mainly clear", "🌤️"),
+                2 => ("Partly cloudy", "⛅"),
+                3 => ("Overcast", "☁️"),
+                45 => ("Foggy", "🌫️"),
+                48 => ("Depositing rime fog", "🌫️"),
+                51 => ("Light drizzle", "🌦️"),
+                53 => ("Moderate drizzle", "🌦️"),
+                55 => ("Dense drizzle", "🌦️"),
+                61 => ("Slight rain", "🌧️"),
+                63 => ("Moderate rain", "🌧️"),
+                65 => ("Heavy rain", "🌧️"),
+                71 => ("Slight snow fall", "🌨️"),
+                73 => ("Moderate snow fall", "🌨️"),
+                75 => ("Heavy snow fall", "🌨️"),
+                77 => ("Snow grains", "🌨️"),
+                80 => ("Slight rain showers", "🌦️"),
+                81 => ("Moderate rain showers", "🌦️"),
+                82 => ("Violent rain showers", "🌦️"),
+                85 => ("Slight snow showers", "🌨️"),
+                86 => ("Heavy snow showers", "🌨️"),
+                95 => ("Thunderstorm", "⛈️"),
+                96 => ("Thunderstorm with slight hail", "⛈️"),
+                99 => ("Thunderstorm with heavy hail", "⛈️"),
+                _ => ("Unknown", "❓")
             };
         }
 
         private (double latitude, double longitude) GetCoordinatesForLocation(string location)
         {
             var locationLower = location.ToLower();
-            
-            return locationLower switch
-            {
-                var loc when loc.Contains("stockholm") => (59.3293, 18.0686),
-                var loc when loc.Contains("göteborg") || loc.Contains("gothenburg") => (57.7089, 11.9746),
-                var loc when loc.Contains("malmö") || loc.Contains("malmo") => (55.6050, 13.0038),
-                var loc when loc.Contains("uppsala") => (59.8586, 17.6389),
-                var loc when loc.Contains("linköping") || loc.Contains("linkoping") => (58.4108, 15.6214),
-                var loc when loc.Contains("örebro") || loc.Contains("orebro") => (59.2741, 15.2066),
-                var loc when loc.Contains("västerås") || loc.Contains("vasteras") => (59.6162, 16.5528),
-                var loc when loc.Contains("helsingborg") => (56.0465, 12.6945),
-                var loc when loc.Contains("jönköping") || loc.Contains("jonkoping") => (57.7826, 14.1618),
-                var loc when loc.Contains("norrköping") || loc.Contains("norrkoping") => (58.5877, 16.1924),
-                var loc when loc.Contains("lund") => (55.7047, 13.1910),
-                var loc when loc.Contains("umeå") || loc.Contains("umea") => (63.8258, 20.2630),
-                var loc when loc.Contains("gävle") || loc.Contains("gavle") => (60.6745, 17.1417),
-                var loc when loc.Contains("borås") || loc.Contains("boras") => (57.7210, 12.9401),
-                _ => (57.7210, 12.9401) // Default till Borås
-            };
+
+            if (locationLower.Contains("stockholm")) return (59.3293, 18.0686);
+            if (locationLower.Contains("göteborg") || locationLower.Contains("gothenburg")) return (57.7089, 11.9746);
+            if (locationLower.Contains("malmö") || locationLower.Contains("malmo")) return (55.6050, 13.0038);
+            if (locationLower.Contains("uppsala")) return (59.8586, 17.6389);
+            if (locationLower.Contains("linköping") || locationLower.Contains("linkoping")) return (58.4108, 15.6214);
+            if (locationLower.Contains("örebro") || locationLower.Contains("orebro")) return (59.2741, 15.2066);
+            if (locationLower.Contains("västerås") || locationLower.Contains("vasteras")) return (59.6162, 16.5528);
+            if (locationLower.Contains("helsingborg")) return (56.0465, 12.6945);
+            if (locationLower.Contains("jönköping") || locationLower.Contains("jonkoping")) return (57.7826, 14.1618);
+            if (locationLower.Contains("norrköping") || locationLower.Contains("norrkoping")) return (58.5877, 16.1924);
+            if (locationLower.Contains("lund")) return (55.7047, 13.1910);
+            if (locationLower.Contains("umeå") || locationLower.Contains("umea")) return (63.8258, 20.2630);
+            if (locationLower.Contains("gävle") || locationLower.Contains("gavle")) return (60.6745, 17.1417);
+            if (locationLower.Contains("borås") || locationLower.Contains("boras")) return (57.7210, 12.9401);
+
+            // Default to Borås
+            _logger.LogWarning("Location '{Location}' not found, using default coordinates (Borås)", location);
+            return (57.7210, 12.9401);
         }
     }
 
     // API Response Models
     public class OpenMeteoResponse
     {
+        [JsonPropertyName("latitude")]
         public double Latitude { get; set; }
+
+        [JsonPropertyName("longitude")]
         public double Longitude { get; set; }
+
+        [JsonPropertyName("timezone")]
         public string Timezone { get; set; } = "";
+
+        [JsonPropertyName("current")]
         public CurrentWeather Current { get; set; } = new();
     }
 
     public class CurrentWeather
     {
+        [JsonPropertyName("time")]
         public string Time { get; set; } = "";
-        public double Temperature_2m { get; set; }
-        public double Relative_humidity_2m { get; set; }
-        public double Wind_speed_10m { get; set; }
-        public int Weather_code { get; set; }
+
+        [JsonPropertyName("temperature_2m")]
+        public double Temperature2m { get; set; }
+
+        [JsonPropertyName("relative_humidity_2m")]
+        public double RelativeHumidity2m { get; set; }
+
+        [JsonPropertyName("wind_speed_10m")]
+        public double WindSpeed10m { get; set; }
+
+        [JsonPropertyName("weather_code")]
+        public int WeatherCode { get; set; }
     }
 }
