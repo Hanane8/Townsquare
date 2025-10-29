@@ -121,8 +121,13 @@ else
                             <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Details</a>
                             @{
                                 var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                                var canEdit = !isPast && (item.CreatedById == currentUserId || User.IsInRole("Admin"));
-                                var canDelete = item.CreatedById == currentUserId || User.IsInRole("Admin");
+                                var canEdit = false;
+                                var canDelete = false;
+                                if (currentUserId != null)
+                                {
+                                    canEdit = !isPast && (item.CreatedById == currentUserId || User.IsInRole("Admin"));
+                                    canDelete = item.CreatedById == currentUserId || User.IsInRole("Admin");
+                                }  
                             }
                             @if (canEdit)
                             {
