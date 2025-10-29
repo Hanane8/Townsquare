@@ -103,6 +103,9 @@ The application will be available at `https://localhost:5001` or `http://localho
 - **Password**: Admin123!
 - **Role**: Admin
 
+**Note:** This is for development/testing purposes only. 
+In production, admin accounts should be created securely through proper channels.
+
 ## Project Structure
 
 ```
