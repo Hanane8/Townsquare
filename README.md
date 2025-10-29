@@ -59,7 +59,7 @@ The application uses SQL Server LocalDB with Entity Framework Code-First approac
 
 #### Security Note
 
-While the default LocalDB connection string is included in `appsettings.json`, 
+While the default LocalDB connection string is included in `appsettings.Development.json`, 
 this is acceptable because:
 - LocalDB uses Windows Authentication (no passwords)
 - The database is local-only (no external access)
